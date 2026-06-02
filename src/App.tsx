@@ -35,7 +35,9 @@ import {
   Settings,
   X,
   Share2,
-  Camera
+  Camera,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { 
   format, 
@@ -235,6 +237,7 @@ export default function App() {
   const [formData, setFormData] = useState<any>({});
   const [favorites, setFavorites] = useState<FavoriteTemplate[]>([]);
   const [favoriteName, setFavoriteName] = useState<string>('');
+  const [theme, setTheme] = useState<'default' | 'dark' | 'light'>('default');
 
   // Load data
   useEffect(() => {
@@ -245,6 +248,10 @@ export default function App() {
       } catch (e) {
         console.error('Failed to parse logs', e);
       }
+    }
+    const savedTheme = localStorage.getItem('workout_theme');
+    if (savedTheme === 'default' || savedTheme === 'dark' || savedTheme === 'light') {
+      setTheme(savedTheme);
     }
     const savedFavorites = localStorage.getItem('workout_favorites');
     if (savedFavorites) {
@@ -306,6 +313,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('workout_favorites', JSON.stringify(favorites));
   }, [favorites]);
+
+  useEffect(() => {
+    localStorage.setItem('workout_theme', theme);
+  }, [theme]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1169,7 +1180,144 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-bg text-white p-4 md:p-8 font-sans">
+    <div className={cn("min-h-screen bg-dark-bg text-white p-4 md:p-8 font-sans transition-colors duration-300", {
+      "theme-default": theme === 'default',
+      "theme-dark": theme === 'dark',
+      "theme-light": theme === 'light'
+    })}>
+      {/* Dynamic Theme Style Sheet */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        /* LIGHT THEME OVERRIDES */
+        .theme-light {
+          --color-dark-bg: #eceef2 !important;
+          --color-card-bg: #ffffff !important;
+          --color-charcoal: #e2e8f0 !important;
+          --color-neon-green: #10b981 !important;
+          color-scheme: light;
+        }
+        .theme-light, .theme-light * {
+          border-color: rgba(15, 23, 42, 0.08);
+        }
+        .theme-light .text-white {
+          color: #0f172a !important;
+        }
+        .theme-light .text-gray-100 {
+          color: #1e293b !important;
+        }
+        .theme-light .text-gray-200 {
+          color: #334155 !important;
+        }
+        .theme-light .text-gray-300 {
+          color: #475569 !important;
+        }
+        .theme-light .text-gray-400 {
+          color: #64748b !important;
+        }
+        .theme-light .text-gray-500 {
+          color: #94a3b8 !important;
+        }
+        .theme-light .text-gray-650, .theme-light .text-gray-600 {
+          color: #94a3b8 !important;
+        }
+        .theme-light .text-neon-green {
+          color: #059669 !important;
+        }
+        .theme-light .border-white\\/5 {
+          border-color: rgba(15, 23, 42, 0.08) !important;
+        }
+        .theme-light .border-white\\/10 {
+          border-color: rgba(15, 23, 42, 0.12) !important;
+        }
+        .theme-light .border-white\\/20 {
+          border-color: rgba(15, 23, 42, 0.2) !important;
+        }
+        .theme-light .bg-charcoal\\/20 {
+          background-color: rgba(15, 23, 42, 0.03) !important;
+        }
+        .theme-light .bg-charcoal\\/30 {
+          background-color: rgba(15, 23, 42, 0.04) !important;
+        }
+        .theme-light .bg-charcoal\\/40 {
+          background-color: rgba(15, 23, 42, 0.05) !important;
+        }
+        .theme-light .bg-charcoal\\/65 {
+          background-color: rgba(15, 23, 42, 0.06) !important;
+        }
+        .theme-light .bg-charcoal\\/80 {
+          background-color: rgba(15, 23, 42, 0.08) !important;
+        }
+        .theme-light .bg-black\\/85 {
+          background-color: rgba(15, 23, 42, 0.75) !important;
+        }
+        .theme-light .bg-card-bg\\/80 {
+          background-color: rgba(255, 255, 255, 0.85) !important;
+        }
+        .theme-light .bg-\\[\\#0e1117\\] {
+          background-color: #ffffff !important;
+          border-color: rgba(15, 23, 42, 0.12) !important;
+        }
+        .theme-light input, .theme-light select, .theme-light textarea {
+          background-color: #f1f5f9 !important;
+          color: #0f172a !important;
+          border-color: #cbd5e1 !important;
+        }
+        .theme-light input:focus, .theme-light select:focus, .theme-light textarea:focus {
+          border-color: #10b981 !important;
+        }
+        .theme-light .bg-neon-green\\/10 {
+          background-color: rgba(16, 185, 129, 0.09) !important;
+        }
+        .theme-light .bg-neon-green\\/20 {
+          background-color: rgba(16, 185, 129, 0.16) !important;
+        }
+        .theme-light .border-neon-green\\/30 {
+          border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+        .theme-light .neon-glow {
+          text-shadow: 0 0 10px rgba(16, 185, 129, 0.3) !important;
+        }
+        .theme-light .shadow-neon-green\\/5, .theme-light .shadow-neon-green\\/10 {
+          box-shadow: 0 4px 20px rgba(16, 185, 129, 0.05) !important;
+        }
+        .theme-light .shadow-2xl {
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+        }
+        .theme-light .recharts-text {
+          fill: #475569 !important;
+        }
+        .theme-light .recharts-layer text {
+          fill: #475569 !important;
+        }
+
+        /* DARK MIDNIGHT COMPLEX OVERRIDES */
+        .theme-dark {
+          --color-dark-bg: #040406 !important;
+          --color-card-bg: #0c0d12 !important;
+          --color-charcoal: #171a22 !important;
+          --color-neon-green: #38bdf8 !important;
+        }
+        .theme-dark .text-neon-green {
+          color: #38bdf8 !important;
+        }
+        .theme-dark .border-neon-green\\/20 {
+          border-color: rgba(56, 189, 248, 0.2) !important;
+        }
+        .theme-dark .border-neon-green\\/30 {
+          border-color: rgba(56, 189, 248, 0.3) !important;
+        }
+        .theme-dark .bg-neon-green\\/10 {
+          background-color: rgba(56, 189, 248, 0.09) !important;
+        }
+        .theme-dark .bg-neon-green\\/20 {
+          background-color: rgba(56, 189, 248, 0.16) !important;
+        }
+        .theme-dark .neon-glow {
+          text-shadow: 0 0 10px rgba(56, 189, 248, 0.4) !important;
+        }
+        .theme-dark .shadow-neon-green\\/5, .theme-dark .shadow-neon-green\\/10 {
+          box-shadow: 0 4px 20px rgba(56, 189, 248, 0.05) !important;
+        }
+      ` }} />
       {/* Header & Notifications */}
       <header className="max-w-7xl mx-auto mb-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -1200,7 +1348,50 @@ export default function App() {
               <p className="text-xs md:text-sm text-gray-400 mt-1">개인 맞춤형 운동 기록 및 건강 분석</p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
+            {/* 테마 변경 컨트롤 */}
+            <div className="flex items-center bg-charcoal/50 p-1 rounded-lg border border-white/5 w-full md:w-auto gap-0.5 shrink-0 select-none">
+              <button
+                onClick={() => setTheme('default')}
+                className={cn(
+                  "flex-1 md:flex-initial px-2.5 py-1.5 rounded-md text-[11px] font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+                  theme === 'default' 
+                    ? "bg-neon-green text-black shadow-sm" 
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                )}
+                title="기본 테마"
+              >
+                <Zap size={11} className={theme === 'default' ? 'text-black' : 'text-neon-green'} />
+                <span>기본</span>
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={cn(
+                  "flex-1 md:flex-initial px-2.5 py-1.5 rounded-md text-[11px] font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+                  theme === 'dark' 
+                    ? "bg-[#38bdf8] text-black shadow-sm" 
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                )}
+                title="다크 테마"
+              >
+                <Moon size={11} className={theme === 'dark' ? 'text-black' : 'text-sky-450'} />
+                <span>다크</span>
+              </button>
+              <button
+                onClick={() => setTheme('light')}
+                className={cn(
+                  "flex-1 md:flex-initial px-2.5 py-1.5 rounded-md text-[11px] font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+                  theme === 'light' 
+                    ? "bg-[#10b981] text-white shadow-sm" 
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                )}
+                title="화이트 테마"
+              >
+                <Sun size={11} className={theme === 'light' ? 'text-white' : 'text-emerald-500'} />
+                <span>화이트</span>
+              </button>
+            </div>
+
             <button 
               onClick={loadExampleData}
               className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-charcoal hover:bg-charcoal/80 rounded-lg text-xs md:text-sm font-medium transition-all"
