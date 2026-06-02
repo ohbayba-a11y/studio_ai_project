@@ -22,6 +22,8 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Sparkles,
   MessageCircle,
   Brain,
@@ -238,8 +240,18 @@ export default function App() {
   const [favorites, setFavorites] = useState<FavoriteTemplate[]>([]);
   const [favoriteName, setFavoriteName] = useState<string>('');
   const [theme, setTheme] = useState<'default' | 'dark' | 'light'>('default');
+  const [isFormExpanded, setIsFormExpanded] = useState<boolean>(true);
+  const [isBadgesExpanded, setIsBadgesExpanded] = useState<boolean>(true);
 
   // Load data
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isLargeScreen = window.innerWidth > 1024;
+      setIsFormExpanded(isLargeScreen);
+      setIsBadgesExpanded(isLargeScreen);
+    }
+  }, []);
+
   useEffect(() => {
     const saved = localStorage.getItem('workout_logs');
     if (saved) {
@@ -1464,195 +1476,224 @@ export default function App() {
             </div>
           </button>
 
-          <div className="bg-card-bg border border-white/5 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-              <Plus className="text-neon-green" /> 오늘의 운동 기록
-            </h2>
+          <div className="bg-card-bg border border-white/5 rounded-2xl shadow-xl overflow-hidden">
+            <button
+              onClick={() => setIsFormExpanded(prev => !prev)}
+              className="w-full text-left p-6 flex items-center justify-between hover:bg-white/[0.02] transition-colors focus:outline-none"
+            >
+              <h2 className="text-xl font-bold flex items-center gap-2 m-0 text-white">
+                <Plus className="text-neon-green" /> 오늘의 운동 기록
+              </h2>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase font-black tracking-wider text-gray-400 bg-charcoal/40 px-2 py-1 rounded border border-white/5 md:inline hidden">
+                  {isFormExpanded ? "접기" : "기록하기 +"}
+                </span>
+                <div className="w-8 h-8 rounded-lg bg-charcoal/50 text-neon-green hover:text-white flex items-center justify-center border border-white/5 transition-colors">
+                  {isFormExpanded ? (
+                    <X size={16} className="animate-pulse" />
+                  ) : (
+                    <Plus size={16} />
+                  )}
+                </div>
+              </div>
+            </button>
             
-            <div className="space-y-4">
-              {/* 즐겨찾기 템플릿 섹션 */}
-              <div className="border border-white/5 bg-charcoal/30 rounded-xl p-3.5 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-400 flex items-center gap-1">
-                    <span className="text-amber-400">★</span> 자주 하는 운동 템플릿
-                  </span>
-                  <span className="text-[10px] text-gray-500 font-medium">Auto-Fill</span>
-                </div>
-                {favorites.length === 0 ? (
-                  <p className="text-[11px] text-gray-500 leading-normal">
-                    자주 수행하는 루틴을 아래에서 즐겨찾기로 저장하면 언제든지 원클릭으로 양식을 불러올 수 있습니다.
-                  </p>
-                ) : (
-                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
-                    {favorites.map(fav => (
-                      <div
-                        key={fav.id}
-                        onClick={() => handleLoadFavorite(fav)}
-                        className="group flex items-center gap-1.5 px-3 py-1.5 bg-charcoal/65 hover:bg-neon-green/10 border border-white/10 hover:border-neon-green/40 rounded-lg text-xs font-bold text-gray-300 hover:text-white transition-all cursor-pointer select-none"
-                      >
-                        <span className="truncate max-w-[120px]">{fav.name}</span>
-                        <button
-                          onClick={(e) => handleDeleteFavorite(e, fav.id)}
-                          className="opacity-40 group-hover:opacity-100 hover:text-red-400 transition-opacity p-0.5"
-                          title="삭제"
-                        >
-                          <X size={10} />
-                        </button>
+            <AnimatePresence initial={false}>
+              {isFormExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="overflow-hidden border-t border-white/5"
+                >
+                  <div className="p-6 space-y-4">
+                    {/* 즐겨찾기 템플릿 섹션 */}
+                    <div className="border border-white/5 bg-charcoal/30 rounded-xl p-3.5 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-400 flex items-center gap-1">
+                          <span className="text-amber-400">★</span> 자주 하는 운동 템플릿
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-medium">Auto-Fill</span>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">날짜 선택</label>
-                <input 
-                  type="date" 
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-charcoal border border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-neon-green transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">운동 종류</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {WORKOUT_TYPES.map(type => (
-                    <button
-                      key={type}
-                      onClick={() => setSelectedType(type)}
-                      className={cn(
-                        "py-2 rounded-lg text-sm font-bold border transition-all flex flex-col items-center gap-1",
-                        selectedType === type 
-                          ? "bg-neon-green text-black border-neon-green" 
-                          : "bg-charcoal text-gray-400 border-white/5 hover:border-white/20"
+                      {favorites.length === 0 ? (
+                        <p className="text-[11px] text-gray-500 leading-normal">
+                          자주 수행하는 루틴을 아래에서 즐겨찾기로 저장하면 언제든지 원클릭으로 양식을 불러올 수 있습니다.
+                        </p>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
+                          {favorites.map(fav => (
+                            <div
+                              key={fav.id}
+                              onClick={() => handleLoadFavorite(fav)}
+                              className="group flex items-center gap-1.5 px-3 py-1.5 bg-charcoal/65 hover:bg-neon-green/10 border border-white/10 hover:border-neon-green/40 rounded-lg text-xs font-bold text-gray-300 hover:text-white transition-all cursor-pointer select-none"
+                            >
+                              <span className="truncate max-w-[120px]">{fav.name}</span>
+                              <button
+                                onClick={(e) => handleDeleteFavorite(e, fav.id)}
+                                className="opacity-40 group-hover:opacity-100 hover:text-red-400 transition-opacity p-0.5"
+                                title="삭제"
+                              >
+                                <X size={10} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">날짜 선택</label>
+                      <input 
+                        type="date" 
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="w-full bg-charcoal border border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-neon-green transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">운동 종류</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {WORKOUT_TYPES.map(type => (
+                          <button
+                            key={type}
+                            onClick={() => setSelectedType(type)}
+                            className={cn(
+                              "py-2 rounded-lg text-sm font-bold border transition-all flex flex-col items-center gap-1",
+                              selectedType === type 
+                                ? "bg-neon-green text-black border-neon-green" 
+                                : "bg-charcoal text-gray-400 border-white/5 hover:border-white/20"
+                            )}
+                          >
+                            {type === '수영' && <Waves size={18} />}
+                            {type === '홈트' && <Home size={18} />}
+                            {type === '사이클' && <Bike size={18} />}
+                            {type === '걷기' && <Footprints size={18} />}
+                            {type === '헬스장' && <Dumbbell size={18} />}
+                            {type}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/5 space-y-4">
+                      {/* Dynamic Fields Based on Type */}
+                      {selectedType === '수영' && (
+                        <>
+                          <div className="grid grid-cols-2 gap-4">
+                            <SelectField label="거리" value={formData.distance} onChange={v => setFormData({...formData, distance: v ? Number(v) : undefined})} options={SWIM_DISTANCE_OPTIONS} suffix="m" />
+                            <SelectField label="레인 수" value={formData.lanes} onChange={v => setFormData({...formData, lanes: v ? Number(v) : undefined})} options={SWIM_LANES_OPTIONS} suffix="개" />
+                          </div>
+                          <SelectField label="영법" value={formData.stroke} onChange={v => setFormData({...formData, stroke: v || undefined})} options={SWIM_STROKE_OPTIONS} />
+                        </>
+                      )}
+
+                      {selectedType === '홈트' && (
+                        <>
+                          <InputField label="종목명" type="text" placeholder="예: 푸쉬업, 스쿼트 등" value={formData.exerciseName} onChange={v => setFormData({...formData, exerciseName: v})} />
+                          <div className="grid grid-cols-2 gap-4">
+                            <SelectField label="세트 수" value={formData.sets} onChange={v => setFormData({...formData, sets: v ? Number(v) : undefined})} options={HOMET_SETS_OPTIONS} suffix="세트" />
+                            <SelectField label="횟수" value={formData.reps} onChange={v => setFormData({...formData, reps: v ? Number(v) : undefined})} options={HOMET_REPS_OPTIONS} suffix="회" />
+                          </div>
+                        </>
+                      )}
+
+                      {selectedType === '사이클' && (
+                        <>
+                          <SelectField label="주행 거리" value={formData.distance} onChange={v => setFormData({...formData, distance: v ? Number(v) : undefined})} options={CYCLE_DISTANCE_OPTIONS} suffix="km" />
+                          <SelectField label="소요 시간" value={formData.duration} onChange={v => setFormData({...formData, duration: v ? Number(v) : undefined})} options={DURATION_OPTIONS} suffix="분" />
+                        </>
+                      )}
+
+                      {selectedType === '걷기' && (
+                        <>
+                          <SelectField label="걸음 수" value={formData.steps} onChange={v => setFormData({...formData, steps: v ? Number(v) : undefined})} options={WALK_STEPS_OPTIONS} suffix="걸음" />
+                          <SelectField label="소요 시간" value={formData.duration} onChange={v => setFormData({...formData, duration: v ? Number(v) : undefined})} options={DURATION_OPTIONS} suffix="분" />
+                        </>
+                      )}
+
+                      {selectedType === '헬스장' && (
+                        <>
+                          <div className="grid grid-cols-2 gap-4">
+                            <SelectField label="부위" value={formData.bodyPart} onChange={v => setFormData({...formData, bodyPart: v || undefined})} options={GYM_BODYPART_OPTIONS} />
+                            <SelectField label="종목" value={formData.exercise} onChange={v => setFormData({...formData, exercise: v || undefined})} options={GYM_EXERCISE_OPTIONS} />
+                          </div>
+                          <div className="grid grid-cols-3 gap-4">
+                            <SelectField label="무게" value={formData.weight} onChange={v => setFormData({...formData, weight: v ? Number(v) : undefined})} options={GYM_WEIGHT_OPTIONS} suffix="kg" />
+                            <SelectField label="세트" value={formData.sets} onChange={v => setFormData({...formData, sets: v ? Number(v) : undefined})} options={HOMET_SETS_OPTIONS} suffix="세트" />
+                            <SelectField label="횟수" value={formData.reps} onChange={v => setFormData({...formData, reps: v ? Number(v) : undefined})} options={HOMET_REPS_OPTIONS} suffix="회" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Common Fields */}
+                      {!['사이클', '걷기'].includes(selectedType) && (
+                        <SelectField label="소요 시간" value={formData.duration} onChange={v => setFormData({...formData, duration: v ? Number(v) : undefined})} options={DURATION_OPTIONS} suffix="분" />
+                      )}
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">오늘의 컨디션 ({condition}/10)</label>
+                        <input 
+                          type="range" 
+                          min="1" 
+                          max="10" 
+                          value={condition}
+                          onChange={(e) => setCondition(Number(e.target.value))}
+                          className="w-full accent-neon-green"
+                        />
+                        <div className="flex justify-between text-[10px] text-gray-500 mt-1 font-bold">
+                          <span>최악</span>
+                          <span>보통</span>
+                          <span>최상</span>
+                        </div>
+                      </div>
+
+                      <TextAreaField 
+                        label="운동 내용" 
+                        placeholder="오늘 어떤 운동을 했나요? (예: 자유형 500m, 스쿼트 3세트 등)" 
+                        value={formData.workoutNote} 
+                        onChange={v => setFormData({...formData, workoutNote: v})} 
+                      />
+                      
+                      <TextAreaField 
+                        label="오늘의 몸 상태" 
+                        placeholder="몸 상태는 어떠신가요? (예: 근육통이 있음, 가벼운 느낌 등)" 
+                        value={formData.bodyNote} 
+                        onChange={v => setFormData({...formData, bodyNote: v})} 
+                      />
+
+                      {/* 현재 루틴을 즐겨찾기로 저장 */}
+                      <div className="pt-4 border-t border-white/5 space-y-2">
+                        <label className="block text-xs font-bold text-gray-500 uppercase">★ 현재 루틴을 템플릿으로 저장</label>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            placeholder="템플릿 명칭 (미지정 시 자동 생성)" 
+                            value={favoriteName}
+                            onChange={(e) => setFavoriteName(e.target.value)}
+                            className="flex-1 bg-charcoal border border-white/10 rounded-lg px-3.5 py-2.5 text-xs focus:outline-none focus:border-neon-green/50 transition-colors text-white"
+                          />
+                          <button
+                            onClick={handleAddFavorite}
+                            className="px-4 py-2.5 bg-charcoal hover:bg-neon-green/10 text-gray-300 hover:text-neon-green border border-white/10 hover:border-neon-green/40 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shrink-0"
+                          >
+                            추가
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={handleAddRecord}
+                      className="w-full bg-neon-green hover:bg-neon-green/90 text-black font-black py-4 rounded-xl shadow-lg shadow-neon-green/20 transition-all active:scale-[0.98] mt-4"
                     >
-                      {type === '수영' && <Waves size={18} />}
-                      {type === '홈트' && <Home size={18} />}
-                      {type === '사이클' && <Bike size={18} />}
-                      {type === '걷기' && <Footprints size={18} />}
-                      {type === '헬스장' && <Dumbbell size={18} />}
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-white/5 space-y-4">
-                {/* Dynamic Fields Based on Type */}
-                {selectedType === '수영' && (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <SelectField label="거리" value={formData.distance} onChange={v => setFormData({...formData, distance: v ? Number(v) : undefined})} options={SWIM_DISTANCE_OPTIONS} suffix="m" />
-                      <SelectField label="레인 수" value={formData.lanes} onChange={v => setFormData({...formData, lanes: v ? Number(v) : undefined})} options={SWIM_LANES_OPTIONS} suffix="개" />
-                    </div>
-                    <SelectField label="영법" value={formData.stroke} onChange={v => setFormData({...formData, stroke: v || undefined})} options={SWIM_STROKE_OPTIONS} />
-                  </>
-                )}
-
-                {selectedType === '홈트' && (
-                  <>
-                    <InputField label="종목명" type="text" placeholder="예: 푸쉬업, 스쿼트 등" value={formData.exerciseName} onChange={v => setFormData({...formData, exerciseName: v})} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <SelectField label="세트 수" value={formData.sets} onChange={v => setFormData({...formData, sets: v ? Number(v) : undefined})} options={HOMET_SETS_OPTIONS} suffix="세트" />
-                      <SelectField label="횟수" value={formData.reps} onChange={v => setFormData({...formData, reps: v ? Number(v) : undefined})} options={HOMET_REPS_OPTIONS} suffix="회" />
-                    </div>
-                  </>
-                )}
-
-                {selectedType === '사이클' && (
-                  <>
-                    <SelectField label="주행 거리" value={formData.distance} onChange={v => setFormData({...formData, distance: v ? Number(v) : undefined})} options={CYCLE_DISTANCE_OPTIONS} suffix="km" />
-                    <SelectField label="소요 시간" value={formData.duration} onChange={v => setFormData({...formData, duration: v ? Number(v) : undefined})} options={DURATION_OPTIONS} suffix="분" />
-                  </>
-                )}
-
-                {selectedType === '걷기' && (
-                  <>
-                    <SelectField label="걸음 수" value={formData.steps} onChange={v => setFormData({...formData, steps: v ? Number(v) : undefined})} options={WALK_STEPS_OPTIONS} suffix="걸음" />
-                    <SelectField label="소요 시간" value={formData.duration} onChange={v => setFormData({...formData, duration: v ? Number(v) : undefined})} options={DURATION_OPTIONS} suffix="분" />
-                  </>
-                )}
-
-                {selectedType === '헬스장' && (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <SelectField label="부위" value={formData.bodyPart} onChange={v => setFormData({...formData, bodyPart: v || undefined})} options={GYM_BODYPART_OPTIONS} />
-                      <SelectField label="종목" value={formData.exercise} onChange={v => setFormData({...formData, exercise: v || undefined})} options={GYM_EXERCISE_OPTIONS} />
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <SelectField label="무게" value={formData.weight} onChange={v => setFormData({...formData, weight: v ? Number(v) : undefined})} options={GYM_WEIGHT_OPTIONS} suffix="kg" />
-                      <SelectField label="세트" value={formData.sets} onChange={v => setFormData({...formData, sets: v ? Number(v) : undefined})} options={HOMET_SETS_OPTIONS} suffix="세트" />
-                      <SelectField label="횟수" value={formData.reps} onChange={v => setFormData({...formData, reps: v ? Number(v) : undefined})} options={HOMET_REPS_OPTIONS} suffix="회" />
-                    </div>
-                  </>
-                )}
-
-                {/* Common Fields */}
-                {!['사이클', '걷기'].includes(selectedType) && (
-                  <SelectField label="소요 시간" value={formData.duration} onChange={v => setFormData({...formData, duration: v ? Number(v) : undefined})} options={DURATION_OPTIONS} suffix="분" />
-                )}
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">오늘의 컨디션 ({condition}/10)</label>
-                  <input 
-                    type="range" 
-                    min="1" 
-                    max="10" 
-                    value={condition}
-                    onChange={(e) => setCondition(Number(e.target.value))}
-                    className="w-full accent-neon-green"
-                  />
-                  <div className="flex justify-between text-[10px] text-gray-500 mt-1 font-bold">
-                    <span>최악</span>
-                    <span>보통</span>
-                    <span>최상</span>
-                  </div>
-                </div>
-
-                <TextAreaField 
-                  label="운동 내용" 
-                  placeholder="오늘 어떤 운동을 했나요? (예: 자유형 500m, 스쿼트 3세트 등)" 
-                  value={formData.workoutNote} 
-                  onChange={v => setFormData({...formData, workoutNote: v})} 
-                />
-                
-                <TextAreaField 
-                  label="오늘의 몸 상태" 
-                  placeholder="몸 상태는 어떠신가요? (예: 근육통이 있음, 가벼운 느낌 등)" 
-                  value={formData.bodyNote} 
-                  onChange={v => setFormData({...formData, bodyNote: v})} 
-                />
-
-                {/* 현재 루틴을 즐겨찾기로 저장 */}
-                <div className="pt-4 border-t border-white/5 space-y-2">
-                  <label className="block text-xs font-bold text-gray-500 uppercase">★ 현재 루틴을 템플릿으로 저장</label>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      placeholder="템플릿 명칭 (미지정 시 자동 생성)" 
-                      value={favoriteName}
-                      onChange={(e) => setFavoriteName(e.target.value)}
-                      className="flex-1 bg-charcoal border border-white/10 rounded-lg px-3.5 py-2.5 text-xs focus:outline-none focus:border-neon-green/50 transition-colors text-white"
-                    />
-                    <button
-                      onClick={handleAddFavorite}
-                      className="px-4 py-2.5 bg-charcoal hover:bg-neon-green/10 text-gray-300 hover:text-neon-green border border-white/10 hover:border-neon-green/40 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shrink-0"
-                    >
-                      추가
+                      기록 추가하기
                     </button>
                   </div>
-                </div>
-              </div>
-
-              <button 
-                onClick={handleAddRecord}
-                className="w-full bg-neon-green hover:bg-neon-green/90 text-black font-black py-4 rounded-xl shadow-lg shadow-neon-green/20 transition-all active:scale-[0.98] mt-4"
-              >
-                기록 추가하기
-              </button>
-            </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* AI Health Analysis Card */}
@@ -1778,10 +1819,10 @@ export default function App() {
         </section>
 
         {/* Right Column: Stats & Dashboard */}
-        <section className="lg:col-span-8 space-y-6">
+        <section className="lg:col-span-8 flex flex-col gap-6">
           
           {/* Milestone Badges Board */}
-          <div className="bg-card-bg border border-white/5 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div className="order-3 lg:order-none bg-card-bg border border-white/5 rounded-2xl p-6 shadow-xl relative overflow-hidden">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
               <div>
                 <h3 className="text-lg font-bold flex items-center gap-2">
@@ -1808,7 +1849,7 @@ export default function App() {
 
             {/* Badges Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-              {badges.map((badge) => {
+              {(isBadgesExpanded ? badges : badges.slice(0, 3)).map((badge) => {
                 const isUnlocked = badge.unlocked;
                 const colorMap: Record<string, { bg: string, text: string, border: string, badgeBg: string, ring: string, shadow: string, glowColor: string }> = {
                   cyan: { 
@@ -1966,10 +2007,24 @@ export default function App() {
                 );
               })}
             </div>
+
+            {/* Toggle Button for Badges on Mobile and Tablet */}
+            <div className="mt-5 flex justify-center">
+              <button
+                onClick={() => setIsBadgesExpanded(!isBadgesExpanded)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-charcoal/60 hover:bg-neon-green/10 text-gray-300 hover:text-neon-green border border-white/5 hover:border-neon-green/30 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                {isBadgesExpanded ? (
+                  <>접기 <ChevronUp size={14} /></>
+                ) : (
+                  <>배지 컬렉션 전체 보기 ({badges.filter(b => b.unlocked).length}/{badges.length}) <ChevronDown size={14} /></>
+                )}
+              </button>
+            </div>
           </div>
           
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="order-2 lg:order-none grid grid-cols-1 md:grid-cols-3 gap-4">
             <StatCard 
               icon={<Activity className="text-neon-green" />} 
               label="이번 주 운동 시간" 
@@ -1994,7 +2049,7 @@ export default function App() {
           </div>
 
           {/* Monthly Calendar View */}
-          <div className="bg-card-bg border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
+          <div className="order-1 lg:order-none bg-card-bg border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <CalendarIcon className="text-neon-green" /> 월간 운동 캘린더
@@ -2067,7 +2122,7 @@ export default function App() {
           </div>
 
           {/* Charts Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="order-4 lg:order-none grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-card-bg border border-white/5 rounded-2xl p-6 shadow-xl">
               <h3 className="text-lg font-bold mb-6">종목별 운동 비중</h3>
               <div className="h-[250px]">
@@ -2125,7 +2180,7 @@ export default function App() {
           </div>
 
           {/* Recent Logs List */}
-          <div className="bg-card-bg border border-white/5 rounded-2xl p-6 shadow-xl">
+          <div className="order-5 lg:order-none bg-card-bg border border-white/5 rounded-2xl p-6 shadow-xl">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold">최근 운동 기록</h3>
               <span className="text-xs text-gray-500 font-bold uppercase">전체 {logs.length}건</span>
