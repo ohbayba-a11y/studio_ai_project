@@ -48,6 +48,14 @@ export interface GymWorkout extends BaseWorkout {
 
 export type WorkoutLog = SwimmingWorkout | HomeTrainingWorkout | CyclingWorkout | WalkingWorkout | GymWorkout;
 
+export interface FavoriteTemplate {
+  id: string;
+  name: string;
+  type: WorkoutType;
+  condition: number;
+  formData: any;
+}
+
 export const WORKOUT_TYPES: WorkoutType[] = ['수영', '홈트', '사이클', '걷기', '헬스장'];
 
 export const CALORIE_METS: Record<WorkoutType, number> = {
